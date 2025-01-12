@@ -1,6 +1,7 @@
 import pygame
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
+
 class Bullet:
 
     def __init__(self, screen, pos) -> None:
@@ -8,16 +9,33 @@ class Bullet:
         self.pos = pygame.Vector2(pos.x + 30, pos.y)
         self.speed = 10
         self.isActive = True
+        self.damage = 10
 
     def render(self):
         self.update()
-        pygame.draw.circle(self.screen, "white", self.pos, 10)
-
-    def reset(self, pos):
-        self.pos = pygame.Vector2(pos.x + 10, pos.y)
+        bullet = pygame.Rect(self.pos.x, self.pos.y, 5, 20)
+        pygame.draw.rect(self.screen, "white", bullet, 10)
 
     def update(self):
-        self.pos.y -= 10
+        self.pos.y -= self.speed
+
+
+class EnemyBullet(Bullet):
+
+    def __init__(self, screen, pos) -> None:
+        self.screen = screen
+        self.pos = pygame.Vector2(pos.x + 30, pos.y)
+        self.speed = 3
+        self.isActive = True
+        self.damage = 10
+
+    def render(self):
+        self.update()
+        bullet = pygame.Rect(self.pos.x, self.pos.y, 5, 20)
+        pygame.draw.rect(self.screen, "red", bullet, 10)
+
+    def update(self):
+        self.pos.y += self.speed
 
 
 class DoubleBullet(Bullet):
@@ -31,9 +49,11 @@ class DoubleBullet(Bullet):
 
     def render(self):
         self.update()
-        pygame.draw.circle(self.screen, "white", self.pos1, 10)
-        pygame.draw.circle(self.screen, "white", self.pos2, 10)
+        bullet1 = pygame.Rect(self.pos.x, self.pos.y, 5, 20)
+        pygame.draw.rect(self.screen, "red", bullet1, 10)
+        bullet2 = pygame.Rect(self.pos.x, self.pos.y, 5, 20)
+        pygame.draw.rect(self.screen, "red", bullet2, 10)
 
     def update(self):
-        self.pos1.y -= 10
-        self.pos2.y -= 10
+        self.pos1.y -= self.speed
+        self.pos2.y -= self.speed
