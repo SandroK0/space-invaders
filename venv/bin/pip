@@ -1,4 +1,4 @@
-#!/home/sandro/Documents/space-invaders/venv/bin/python3
+#!/home/sandro/personal/space-invaders/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
