@@ -1,11 +1,13 @@
 import pygame
-from settings import SCREEN_WIDTH
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 import random
 from bullet import Bullet, EnemyBullet
-import asyncio
+
 
 
 class Enemy:
+    
+    shooting_delay = 100
 
     def __init__(self, screen, direction, position) -> None:
         self.screen = screen
@@ -15,7 +17,6 @@ class Enemy:
         self.health = 100
         self.color = (255, 0, 0)
         self.last_shot_time = pygame.time.get_ticks()
-        self.shooting_delay = 2500
         self.font = pygame.font.Font(None, 48)
         self.title_font = pygame.font.Font(None, 64)  # Font for the title text
 
@@ -28,7 +29,17 @@ class Enemy:
         text_rect = text_surface.get_rect(center=player.center)
         self.screen.blit(text_surface, text_rect)
 
+    def check_collisions(self):
+
+        if self.pos.x + 60 >= SCREEN_WIDTH + 2500:
+            self.direction *= -1
+        if self.pos.x <= -2500:
+            self.direction *= -1
+
     def move(self):
+
+        self.check_collisions()
+
         if self.direction == 1:
             self.pos.x += self.speed
         else:
@@ -39,13 +50,13 @@ class Enemy:
         self.health -= damage
         self.color = (255, 255, 255)
 
-    def shoot(self, game_self):
+    def shoot(self, game_self, direction):
 
         current_time = pygame.time.get_ticks()
 
-        if current_time - self.last_shot_time >= self.shooting_delay:
+        if current_time - self.last_shot_time >= Enemy.shooting_delay:
             game_self.enemy_bullets.append(
-                EnemyBullet(self.screen, self.pos))
+                EnemyBullet(self.screen, self.pos, direction))
             self.last_shot_time = current_time
 
 
@@ -54,37 +65,32 @@ class EnemyWave:
         self.screen = screen
         self.enemies = self.get_wave(screen)
         self.last_shot_time = pygame.time.get_ticks()
-        self.shooting_delay = 2500
         self.current_shooter = 0
 
     def get_wave(self, screen):
 
         enemies = []
-        pos_x = 100
-        pos_y = 100
-        for i in range(2):
-            for i in range(5):
-                enemies.append(
-                    Enemy(screen, 1, pygame.Vector2(pos_x, pos_y)))
-                pos_x += 100
-            pos_y += 100
-            pos_x = 100
+        for i in range(500):
+            pos_x = random.randint(-2000, SCREEN_WIDTH + 2000)
+            pos_y = random.randint(0, SCREEN_HEIGHT - 60)
+            enemies.append(
+                Enemy(screen, random.choice([1, -1]), pygame.Vector2(pos_x, pos_y)))
 
         return enemies
 
-    def change_wave_direction(self):
-        if self.enemies[-1].pos.x + 60 >= SCREEN_WIDTH:
-            for enemy in self.enemies:
-                enemy.direction *= -1
-        if self.enemies[0].pos.x <= 0:
-            for enemy in self.enemies:
-                enemy.direction *= -1
-
-    def shoot(self, game_self):
+    def shoot(self, game_self, player_pos):
         current_time = pygame.time.get_ticks()  # Get the current time
 
-        if current_time - self.last_shot_time > 500:
-            self.enemies[self.current_shooter].shoot(game_self)
+        if current_time - self.last_shot_time > Enemy.shooting_delay:
+
+            current_shooter = self.enemies[self.current_shooter]
+
+            bullet_direction = pygame.Vector2(
+                player_pos.x - current_shooter.pos.x, player_pos.y - current_shooter.pos.y)
+            if bullet_direction.length() != 0:
+                bullet_direction = bullet_direction.normalize()
+
+            current_shooter.shoot(game_self, bullet_direction)
             self.current_shooter += 1
             self.last_shot_time = current_time
 
@@ -97,4 +103,6 @@ class EnemyWave:
             enemy.move()
             enemy.render()
 
-        self.change_wave_direction()
+    def __len__(self):
+
+        return len(self.enemies)

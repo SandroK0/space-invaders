@@ -12,9 +12,10 @@ class Player:
         self.screen = screen
         self.pos = pygame.Vector2(SCREEN_WIDTH / 2, 800)
         self.last_shot_time = pygame.time.get_ticks()  # Track time of the last shot
-        self.shooting_delay = 100
-        self.health = 100
+        self.shooting_delay = 10
+        self.health = 1000
         self.color = "white"
+        self.speed = 15
 
     def render(self):
 
@@ -27,14 +28,16 @@ class Player:
         self.screen.blit(text_surface, text_rect)
 
     def shoot(self, game_self):
-
         current_time = pygame.time.get_ticks()
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        direction = pygame.Vector2(mouse_x - self.pos.x, mouse_y - self.pos.y)
+        if direction.length() != 0:
+            direction = direction.normalize()  # Normalize direction
 
         if current_time - self.last_shot_time >= self.shooting_delay:
             game_self.player_bullets.append(
-                Bullet(self.screen, self.pos))
-            game_self.player_bullets.append(
-                Bullet(self.screen, self.pos))
+                Bullet(self.screen, self.pos, direction)
+            )
             self.last_shot_time = current_time
 
     def take_damage(self, damage):

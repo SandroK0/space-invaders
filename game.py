@@ -1,10 +1,7 @@
 import pygame
 from player import Player
-import player
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, PLAYER_SPEED, BALL_SPEED
-from bullet import Bullet
-from enemy import Enemy, EnemyWave
-import random
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from enemy import EnemyWave
 
 
 class Game:
@@ -13,6 +10,7 @@ class Game:
 
         pygame.font.init()
 
+        self.running = True
         self.screen = screen
         self.font = pygame.font.Font(None, 74)
         self.mode = None
@@ -28,9 +26,12 @@ class Game:
 
     def update(self):
 
+        if len(self.enemy_wave) == 0:
+            print("You Won!")
+            self.running = False
+
         keys = pygame.key.get_pressed()
-        self.enemy_wave.shoot(self)
-        self.bullets_follow_player()
+        self.enemy_wave.shoot(self, self.player.pos)
         self.handle_press(keys)
         self.check_hits()
 
@@ -42,14 +43,6 @@ class Game:
         self.enemy_wave.render_wave()
         self.player.render()
 
-    def bullets_follow_player(self):
-
-        for bullet in self.enemy_bullets:
-            if bullet.pos.x < self.player.pos.x:
-                bullet.pos.x += 1
-            elif bullet.pos.x > self.player.pos.x:
-                bullet.pos.x -= 1
-
     def render_enemy_bullets(self):
         for bullet in self.enemy_bullets:
             if bullet.pos.y > 900:
@@ -58,8 +51,10 @@ class Game:
                 bullet.render()
 
     def render_player_bullets(self):
+
+
         for bullet in self.player_bullets:
-            if bullet.pos.y > 900:
+            if (bullet.pos.x < 0 or bullet.pos.x > SCREEN_WIDTH or bullet.pos.y < 0 or bullet.pos.y > SCREEN_HEIGHT):
                 self.player_bullets.remove(bullet)
             else:
                 bullet.render()
@@ -67,18 +62,23 @@ class Game:
     def handle_press(self, keys):
         if keys[pygame.K_a]:
             if not self.player.pos.x <= 0:
-                self.player.pos.x -= PLAYER_SPEED
+                self.player.pos.x -= self.player.speed
         if keys[pygame.K_d]:
             if not self.player.pos.x + 60 >= SCREEN_WIDTH:
-                self.player.pos.x += PLAYER_SPEED
+                self.player.pos.x += self.player.speed
         if keys[pygame.K_w]:
-            if not self.player.pos.y <= 400:
-                self.player.pos.y -= PLAYER_SPEED
+            if not self.player.pos.y <= 0:
+                self.player.pos.y -= self.player.speed
         if keys[pygame.K_s]:
             if not self.player.pos.y + 60 >= SCREEN_HEIGHT:
-                self.player.pos.y += PLAYER_SPEED
+                self.player.pos.y += self.player.speed
         if keys[pygame.K_SPACE]:
             self.player.shoot(self)
+        
+        mouse_buttons = pygame.mouse.get_pressed() 
+        if mouse_buttons[0]:
+            self.player.shoot(self)
+
 
     def check_hits(self):
         for bullet in self.player_bullets:
@@ -89,7 +89,8 @@ class Game:
                 ):
 
                     enemy.take_damage(bullet.damage)
-                    self.player_bullets.remove(bullet)
+                    if bullet in self.player_bullets:
+                        self.player_bullets.remove(bullet)
                     if enemy.health <= 0:
                         self.enemies.remove(enemy)
 
@@ -100,7 +101,7 @@ class Game:
             ):
 
                 self.player.take_damage(bullet.damage)
-                print("Hit")
                 self.enemy_bullets.remove(bullet)
                 if self.player.health <= 0:
                     print("You died!")
+                    self.running = False

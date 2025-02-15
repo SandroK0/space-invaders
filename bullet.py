@@ -4,38 +4,44 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Bullet:
 
-    def __init__(self, screen, pos) -> None:
+    def __init__(self, screen, pos, direction) -> None:
         self.screen = screen
         self.pos = pygame.Vector2(pos.x + 30, pos.y)
         self.speed = 10
         self.isActive = True
-        self.damage = 10
+        self.damage = 100
+        self.direction = direction
 
     def render(self):
         self.update()
-        bullet = pygame.Rect(self.pos.x, self.pos.y, 5, 20)
+        bullet = pygame.Rect(self.pos.x, self.pos.y, 10, 10)
         pygame.draw.rect(self.screen, "white", bullet, 10)
 
     def update(self):
-        self.pos.y -= self.speed
+        
+        self.pos.x += self.direction.x * self.speed
+        self.pos.y += self.direction.y * self.speed
 
 
 class EnemyBullet(Bullet):
 
-    def __init__(self, screen, pos) -> None:
+    def __init__(self, screen, pos, direction) -> None:
         self.screen = screen
         self.pos = pygame.Vector2(pos.x + 30, pos.y)
         self.speed = 3
         self.isActive = True
         self.damage = 10
+        self.direction = direction 
 
     def render(self):
         self.update()
-        bullet = pygame.Rect(self.pos.x, self.pos.y, 5, 20)
+        bullet = pygame.Rect(self.pos.x, self.pos.y, 10, 10)
         pygame.draw.rect(self.screen, "red", bullet, 10)
 
     def update(self):
-        self.pos.y += self.speed
+        
+        self.pos.x += self.direction.x * self.speed
+        self.pos.y += self.direction.y * self.speed
 
 
 class DoubleBullet(Bullet):
